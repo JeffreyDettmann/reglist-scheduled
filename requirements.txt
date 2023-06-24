@@ -1,0 +1,6 @@
+https://github.com/porcpine1967/liqui-aoe/archive/refs/tags/v0.0.2.tar.gz
+bs4
+psycopg2-binary
+pyyaml
+requests
+vcrpy

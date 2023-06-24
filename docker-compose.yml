@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres
+    volumes:
+      - ${REGLIST_DB:-./tmp/db}:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+  taskrunner:
+    build: .
+    command: lambda_function.handler
+    environment:
+      DB_PASSWORD: password
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
