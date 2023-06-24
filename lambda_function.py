@@ -15,7 +15,7 @@ TIERS = ('A-Tier', 'B-Tier', 'C-Tier', 'S-Tier', 'Qualifier',)
 class ReglistTournament:
     """ Holder class for generating proper tournament insert values."""
     template_sql = """INSERT INTO tournaments
-(name, liquipedia_url, rules_url, format, game, tier, prize_pool, organizers, state, start_date, end_date, created_at, updated_at)
+(name, liquipedia_url, rules_url, format, game, tier, prize_pool, organizers, start_date, end_date, created_at, updated_at)
 VALUES %s
 """
     now = datetime.now()
@@ -37,7 +37,6 @@ VALUES %s
             self.tournament.tier,
             self.tournament.prize,
             ', '.join(self.tournament.organizers),
-            'submitted',
             self.tournament.start,
             self.tournament.end,
             now,
@@ -70,7 +69,7 @@ def execute_bulk_insert(sql, values):
 
 def save_upcoming_tournaments(timebox):
     """ Check liquipedia for new upcoming tournaments and save them."""
-    skip = saved_tournaments(timebox)
+    skip = upcoming_saved_tournaments(timebox)
     tm = TournamentManager(Loader())
     new_tournaments = list()
     for game, tournaments in tm.starting(timebox).items():
@@ -86,7 +85,7 @@ def handler(event, context):
     """ Function to be called by AWS Lambda."""
     now = datetime.now().date()
     timebox = [now, now + timedelta(days=600),]
-    return current_tournaments(timebox)
+    return save_upcoming_tournaments(timebox)
 
 if __name__ == '__main__':
     now = datetime.now().date()
