@@ -9,6 +9,9 @@ import psycopg2.extras
 from liquiaoe.loaders import HttpsLoader as Loader
 from liquiaoe.managers import TournamentManager, Tournament
 
+# will timeout if check too many tournaments
+MAX_LOAD = 4
+
 TIERS = ('A-Tier', 'B-Tier', 'C-Tier', 'S-Tier', 'Qualifier',)
 
 
@@ -39,8 +42,8 @@ VALUES %s
             ', '.join(self.tournament.organizers),
             self.tournament.start,
             self.tournament.end,
-            now,
-            now,
+            ReglistTournament.now,
+            ReglistTournament.now,
             ]
 
 def db_password():
@@ -72,12 +75,17 @@ def save_upcoming_tournaments(timebox):
     skip = upcoming_saved_tournaments(timebox)
     tm = TournamentManager(Loader())
     new_tournaments = list()
-    for game, tournaments in tm.starting(timebox).items():
-        for tournament in tournaments:
-            if tournament.url in skip or tournament.tier not in TIERS:
-                continue
-            tournament.load_advanced(tm.loader)
-            new_tournaments.append(ReglistTournament(tournament).info())
+    try:
+        for game, tournaments in tm.starting(timebox).items():
+            for tournament in tournaments:
+                if tournament.url in skip or tournament.tier not in TIERS:
+                    continue
+                tournament.load_advanced(tm.loader)
+                new_tournaments.append(ReglistTournament(tournament).info())
+                if len(new_tournaments) >= MAX_LOAD:
+                    raise StopIteration
+    except StopIteration:
+        pass
     execute_bulk_insert(ReglistTournament.template_sql, new_tournaments)
     return len(new_tournaments)
     
