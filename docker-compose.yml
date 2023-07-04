@@ -9,6 +9,8 @@ services:
     build: .
     command: lambda_function.handler
     environment:
+      DB_HOST: db
+      DB_NAME: reglist_development
       DB_PASSWORD: password
     volumes:
       - .:/app

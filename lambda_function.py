@@ -46,16 +46,27 @@ VALUES %s
             ReglistTournament.now,
             ]
 
+def db_host():
+    """ Utility function """
+    return os.environ.get('DB_HOST')
+    
+def db_name():
+    """ Utility function """
+    return os.environ.get('DB_NAME')
+
 def db_password():
     """ Utility function """
     return os.environ.get('DB_PASSWORD')
+
+def db_connection():
+    return psycopg2.connect(database=db_name(), user="postgres", password=db_password(), host=db_host())
 
 def upcoming_saved_tournaments(timebox):
     """ Set of liquipedia urls of tournaments already in db to avoid reduplication"""
     cutoff = timebox[0] - timedelta(days=10)
     done = set()
     sql = f"SELECT liquipedia_url from tournaments WHERE start_date > '{cutoff}' AND liquipedia_url IS NOT NULL"
-    conn = psycopg2.connect(database="myapp_development", user="postgres", password=db_password(), host="db")
+    conn = db_connection()
     cursor = conn.cursor()
     cursor.execute(sql)
     for row in cursor.fetchall():
@@ -64,7 +75,7 @@ def upcoming_saved_tournaments(timebox):
         
 def execute_bulk_insert(sql, values):
     """ Takes insert sql with an array of values to be inserted"""
-    conn = psycopg2.connect(database="myapp_development", user="postgres", password=db_password(), host="db")
+    conn = db_connection()
     cur = conn.cursor()
     cur.execute("BEGIN")
     psycopg2.extras.execute_values(cur, sql, values)
