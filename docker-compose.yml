@@ -12,6 +12,7 @@ services:
       DB_HOST: db
       DB_NAME: reglist_development
       DB_PASSWORD: password
+    image: reglist-taskrunner
     volumes:
       - .:/app
     ports:
