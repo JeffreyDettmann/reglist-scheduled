@@ -18,7 +18,7 @@ TIERS = ('A-Tier', 'B-Tier', 'C-Tier', 'S-Tier', 'Qualifier',)
 class ReglistTournament:
     """ Holder class for generating proper tournament insert values."""
     template_sql = """INSERT INTO tournaments
-(name, liquipedia_url, rules_url, format, game, tier, prize_pool, organizers, start_date, end_date, created_at, updated_at)
+(name, liquipedia_url, rules_url, info_url, format, game, tier, prize_pool, organizers, start_date, end_date, created_at, updated_at)
 VALUES %s
 """
     now = datetime.now()
@@ -27,14 +27,21 @@ VALUES %s
 
     def info(self):
         """ Array of values for batch insert"""
-        rules_link = None
+        rules_url = info_url = None
         for link in self.tournament.links:
             if link['type'] == 'rules':
-                rules_link = link['href']
+                rules_url = link['href']
+            elif link['type'] == 'aoezone':
+                info_url = link['href']
+            elif not info_url and link['type'] == 'home':
+                info_url = link['href']
+        if not info_url:
+            info_url = f"https://liquipedia.net{self.tournament.url}"
         return [
             self.tournament.name,
             self.tournament.url,
-            rules_link,
+            rules_url,
+            info_url,
             self.tournament.format_style,
             self.tournament.game,
             self.tournament.tier,
