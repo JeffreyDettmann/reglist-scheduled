@@ -6,8 +6,10 @@ orbs:
 jobs:
   aws-ecr:
     docker:
-      - image: cimg/deploy:2023.08
+      - image: cimg/base:stable
     steps:
+      - setup_remote_docker:
+          version: 20.10.11
       - aws-ecr/build-and-push-image:
           repo: reglist-taskrunner
 
@@ -17,3 +19,13 @@ workflows:
       - aws-ecr:
           context:
             - AWSECR
+---
+version: 2.1
+orbs:
+  aws-ecr: circleci/aws-ecr@8.2.1
+
+workflows:
+  build_and_push_image:
+    jobs:
+      -aws-ecr/build-and-push-image:
+        repo: reglist-taskrunner
