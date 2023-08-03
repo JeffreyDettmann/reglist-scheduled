@@ -162,3 +162,5 @@ cython_debug/
 # Ignore emacs modified files
 *~
 .#*
+# Ignore tmp
+tmp/**/*
