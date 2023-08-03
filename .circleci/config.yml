@@ -1,0 +1,10 @@
+---
+version: 2.1
+orbs:
+  aws-ecr: circleci/aws-ecr@8.2.1
+
+workflows:
+  build_and_push_image:
+    jobs:
+      -aws-ecr/build-and-push-image:
+        repo: reglist-taskrunner
