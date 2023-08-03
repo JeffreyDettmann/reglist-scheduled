@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres
+    image: postgres:14.7
     volumes:
       - ${REGLIST_DB:-./tmp/db}:/var/lib/postgresql/data
     environment:
@@ -12,6 +12,7 @@ services:
       DB_HOST: db
       DB_NAME: reglist_development
       DB_PASSWORD: password
+      RECIPIENT: jeffrey.dettmann@gmail.com
     image: reglist-taskrunner
     volumes:
       - .:/app
