@@ -23,6 +23,7 @@ class ReglistTournament:
     insert_template_sql = """INSERT INTO tournaments
 (name, liquipedia_url, rules_url, info_url, format, game, tier, prize_pool, organizers, start_date, end_date, created_at, updated_at)
 VALUES %s
+ON CONFLICT DO NOTHING
 """
     now = datetime.now()
     def __init__(self, tournament):
@@ -128,9 +129,8 @@ def execute_sql(sql, values, commit=False):
 
 def upcoming_saved_tournaments(timebox):
     """ Set of liquipedia urls of tournaments already in db to avoid reduplication"""
-    cutoff = timebox[0] - timedelta(days=10)
     done = {}
-    sql = f"SELECT liquipedia_url, start_date, end_date, prize_pool, status, flags from tournaments WHERE start_date > '{cutoff}' AND liquipedia_url IS NOT NULL"
+    sql = f"SELECT liquipedia_url, start_date, end_date, prize_pool, status, flags from tournaments WHERE liquipedia_url IS NOT NULL"
     with execute_sql(sql, []) as cursor:
         for row in cursor.fetchall():
             done[row[0]] = row[1:]
@@ -171,9 +171,12 @@ def save_upcoming_tournaments(timebox):
     return len(new_tournaments), len(changed_tournaments)
 
 def email_results(results):
+    message = f"Liquipedia check resulted in {results['new']} new tournaments and {results['updated']} updated tournaments"
+    email_message(message)
+
+def email_message(message):
     client = boto3.client('ses', region_name='us-east-2')
     destination = os.environ.get('RECIPIENT')
-    message = f"Liquipedia check resulted in {results['new']} new tournaments and {results['updated']} updated tournaments"
     print(message)
     client.send_email(
         Destination={
@@ -197,12 +200,16 @@ def email_results(results):
 def handler(event, context):
     """ Function to be called by AWS Lambda."""
     print('Beginning handler function')
-    now = datetime.now().date()
-    timebox = [now, now + timedelta(days=600),]
-    new, updated = save_upcoming_tournaments(timebox)
-    to_return = { 'new': new, 'updated': updated }
-    email_results(to_return)
-    print(to_return)
+    try:
+        now = datetime.now().date()
+        timebox = [now, now + timedelta(days=600),]
+        new, updated = save_upcoming_tournaments(timebox)
+        to_return = { 'new': new, 'updated': updated }
+        email_results(to_return)
+        print(to_return)
+    except Exception as e:
+        to_return = f"ERROR: {e}"
+        email_message(to_return)
     return to_return
 
 if __name__ == '__main__':
