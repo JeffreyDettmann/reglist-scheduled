@@ -168,7 +168,7 @@ def save_upcoming_tournaments(timebox):
         tournament.update_and_flag()
 
     execute_bulk_insert(ReglistTournament.insert_template_sql, new_tournaments)
-    return len(new_tournaments), len(changed_tournaments)
+    return [t[0] for t in new_tournaments], [t.tournament.name for t in changed_tournaments]
 
 def email_results(results):
     message = f"Liquipedia check resulted in {results['new']} new tournaments and {results['updated']} updated tournaments"
