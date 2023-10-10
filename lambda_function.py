@@ -13,7 +13,7 @@ from liquiaoe.loaders import HttpsLoader as Loader
 from liquiaoe.managers import TournamentManager, Tournament
 
 # will timeout if check too many tournaments
-MAX_LOAD = 4
+MAX_LOAD = 400
 
 TIERS = ('A-Tier', 'B-Tier', 'C-Tier', 'S-Tier', 'Qualifier',)
 
@@ -175,6 +175,8 @@ def email_results(results):
     email_message(message)
 
 def email_message(message):
+    print(message)
+    return
     client = boto3.client('ses', region_name='us-east-2')
     destination = os.environ.get('RECIPIENT')
     print(message)
